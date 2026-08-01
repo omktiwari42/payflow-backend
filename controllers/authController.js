@@ -5,8 +5,8 @@ const {
   createUser,
   findUserByEmail,
   findUserByPhone,
+  updateProfile,
 } = require("../models/userModel");
-
 const {
   saveOtp,
   getLatestOtp,
@@ -230,15 +230,80 @@ exports.verifyOtp = async (req, res) => {
 
     await deleteOtp(phone);
 
-    res.json({
+    const user = await findUserByPhone(phone);
+
+    // New User
+    if (!user) {
+      return res.json({
+        success: true,
+        isNewUser: true,
+        message: "OTP verified successfully.",
+      });
+    }
+
+    // Existing User
+    const token = jwt.sign(
+      {
+        id: user.id,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    delete user.password;
+
+    return res.json({
       success: true,
+      isNewUser: false,
+      token,
+      user,
       message: "OTP verified successfully.",
     });
 
   } catch (err) {
     console.error(err);
 
-    res.status(500).json({
+    return res.status(500).json({
+      success: false,
+      message: "Server error.",
+    });
+  }
+};
+/*
+|--------------------------------------------------------------------------
+| Complete Profile
+|--------------------------------------------------------------------------
+*/
+
+exports.completeProfile = async (req, res) => {
+  try {
+    const { full_name, email } = req.body;
+
+    if (!full_name) {
+      return res.status(400).json({
+        success: false,
+        message: "Full name is required.",
+      });
+    }
+
+    const user = await updateProfile(
+      req.user.id,
+      full_name,
+      email || null
+    );
+
+    return res.json({
+      success: true,
+      message: "Profile completed successfully.",
+      user,
+    });
+
+  } catch (err) {
+    console.error(err);
+
+    return res.status(500).json({
       success: false,
       message: "Server error.",
     });
