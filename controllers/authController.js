@@ -1,6 +1,10 @@
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
 const {
-  findUserByPhone,
   createUser,
+  findUserByEmail,
+  findUserByPhone,
 } = require("../models/userModel");
 
 const {
@@ -9,9 +13,150 @@ const {
   deleteOtp,
 } = require("../models/otpModel");
 
-const jwt = require("jsonwebtoken");
+/*
+|--------------------------------------------------------------------------
+| Register
+|--------------------------------------------------------------------------
+*/
 
-// Send OTP
+exports.register = async (req, res) => {
+  try {
+    const { full_name, email, phone, password } = req.body;
+
+    if (!full_name || !phone || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Required fields are missing.",
+      });
+    }
+
+    const existingPhone = await findUserByPhone(phone);
+
+    if (existingPhone) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number already registered.",
+      });
+    }
+
+    if (email) {
+      const existingEmail = await findUserByEmail(email);
+
+      if (existingEmail) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already registered.",
+        });
+      }
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await createUser({
+      full_name,
+      email,
+      phone,
+      password: hashedPassword,
+    });
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Registration successful.",
+      token,
+      user,
+    });
+
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error.",
+    });
+  }
+};
+
+/*
+|--------------------------------------------------------------------------
+| Login (Phone OR Email)
+|--------------------------------------------------------------------------
+*/
+
+exports.login = async (req, res) => {
+  try {
+    const { identifier, password } = req.body;
+
+    let user;
+
+    if (identifier.includes("@")) {
+      user = await findUserByEmail(identifier);
+    } else {
+      user = await findUserByPhone(identifier);
+    }
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials.",
+      });
+    }
+
+    const validPassword = await bcrypt.compare(
+      password,
+      user.password
+    );
+
+    if (!validPassword) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials.",
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    delete user.password;
+
+    res.json({
+      success: true,
+      token,
+      user,
+    });
+
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error.",
+    });
+  }
+};
+
+/*
+|--------------------------------------------------------------------------
+| Send OTP
+|--------------------------------------------------------------------------
+*/
+
 exports.sendOtp = async (req, res) => {
   try {
     const { phone } = req.body;
@@ -19,7 +164,7 @@ exports.sendOtp = async (req, res) => {
     if (!phone || phone.length !== 10) {
       return res.status(400).json({
         success: false,
-        message: "Enter a valid phone number.",
+        message: "Invalid phone number.",
       });
     }
 
@@ -33,7 +178,6 @@ exports.sendOtp = async (req, res) => {
 
     await saveOtp(phone, otp, expiresAt);
 
-    // TODO: Replace this with SMS API (Twilio/Fast2SMS/etc.)
     console.log(`OTP for ${phone}: ${otp}`);
 
     res.json({
@@ -51,7 +195,12 @@ exports.sendOtp = async (req, res) => {
   }
 };
 
-// Verify OTP
+/*
+|--------------------------------------------------------------------------
+| Verify OTP
+|--------------------------------------------------------------------------
+*/
+
 exports.verifyOtp = async (req, res) => {
   try {
     const { phone, otp } = req.body;
@@ -79,35 +228,11 @@ exports.verifyOtp = async (req, res) => {
       });
     }
 
-    let user = await findUserByPhone(phone);
-
-    if (!user) {
-      user = await createUser({
-        full_name: "",
-        email: null,
-        phone,
-        password: "",
-      });
-    }
-
     await deleteOtp(phone);
-
-    const token = jwt.sign(
-      {
-        id: user.id,
-        phone: user.phone,
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "7d",
-      }
-    );
 
     res.json({
       success: true,
-      token,
-      user,
-      isNewUser: !user.full_name,
+      message: "OTP verified successfully.",
     });
 
   } catch (err) {
@@ -118,12 +243,4 @@ exports.verifyOtp = async (req, res) => {
       message: "Server error.",
     });
   }
-};
-
-// Complete Profile
-exports.completeProfile = async (req, res) => {
-  res.json({
-    success: true,
-    message: "Complete profile API coming next.",
-  });
 };
