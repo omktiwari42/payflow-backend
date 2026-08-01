@@ -2,38 +2,126 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
+const compression = require("compression");
+const morgan = require("morgan");
+const rateLimit = require("express-rate-limit");
 
 const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 
-// Middleware
-app.use(cors());
+/*
+|--------------------------------------------------------------------------
+| Security Middleware
+|--------------------------------------------------------------------------
+*/
+
+app.use(helmet());
+
+app.use(compression());
+
+app.use(
+  cors({
+    origin: "*",
+    credentials: true,
+  })
+);
+
 app.use(express.json());
+
 app.use(express.urlencoded({ extended: true }));
 
-// Health Check
+app.use(morgan("dev"));
+
+/*
+|--------------------------------------------------------------------------
+| Rate Limiter
+|--------------------------------------------------------------------------
+*/
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many requests. Please try again later.",
+  },
+});
+
+app.use("/api", limiter);
+
+/*
+|--------------------------------------------------------------------------
+| Health Routes
+|--------------------------------------------------------------------------
+*/
+
 app.get("/", (req, res) => {
   res.json({
     success: true,
     message: "🚀 PayFlow Backend API Running",
+    version: "1.0.0",
   });
 });
 
-// API Routes
+app.get("/health", (req, res) => {
+  res.json({
+    success: true,
+    status: "OK",
+    uptime: process.uptime(),
+    timestamp: new Date(),
+  });
+});
+
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+*/
+
 app.use("/api/auth", authRoutes);
 
-// 404 Handler
+/*
+|--------------------------------------------------------------------------
+| 404 Handler
+|--------------------------------------------------------------------------
+*/
+
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: "Route not found",
+    message: "Route not found.",
   });
 });
 
-// Start Server
+/*
+|--------------------------------------------------------------------------
+| Global Error Handler
+|--------------------------------------------------------------------------
+*/
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+
+  res.status(500).json({
+    success: false,
+    message: "Internal Server Error",
+  });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Start Server
+|--------------------------------------------------------------------------
+*/
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log("🚀 PayFlow Backend Started");
+  console.log(`🌍 Environment : ${process.env.NODE_ENV || "development"}`);
+  console.log(`📡 Server      : http://localhost:${PORT}`);
 });
