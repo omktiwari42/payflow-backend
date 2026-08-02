@@ -11,6 +11,8 @@ const authRoutes = require("./routes/authRoutes");
 const walletRoutes = require("./routes/walletRoutes");
 const transactionRoutes = require("./routes/transactionRoutes");
 const beneficiaryRoutes = require("./routes/beneficiaryRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 
 const app = express();
 
@@ -92,6 +94,10 @@ app.use("/api/wallet", walletRoutes);
 app.use("/api/transactions", transactionRoutes);
 
 app.use("/api/beneficiaries", beneficiaryRoutes);
+
+app.use("/api/notifications", notificationRoutes);
+
+app.use("/api/dashboard", dashboardRoutes);
 
 /*
 |--------------------------------------------------------------------------
