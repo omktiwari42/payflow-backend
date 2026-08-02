@@ -10,6 +10,7 @@ const rateLimit = require("express-rate-limit");
 const authRoutes = require("./routes/authRoutes");
 const walletRoutes = require("./routes/walletRoutes");
 const transactionRoutes = require("./routes/transactionRoutes");
+const beneficiaryRoutes = require("./routes/beneficiaryRoutes");
 
 const app = express();
 
@@ -89,6 +90,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/wallet", walletRoutes);
 
 app.use("/api/transactions", transactionRoutes);
+
+app.use("/api/beneficiaries", beneficiaryRoutes);
 
 /*
 |--------------------------------------------------------------------------
