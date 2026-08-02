@@ -13,6 +13,7 @@ const transactionRoutes = require("./routes/transactionRoutes");
 const beneficiaryRoutes = require("./routes/beneficiaryRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const profileRoutes = require("./routes/profileRoutes");
 
 const app = express();
 
@@ -98,6 +99,8 @@ app.use("/api/beneficiaries", beneficiaryRoutes);
 app.use("/api/notifications", notificationRoutes);
 
 app.use("/api/dashboard", dashboardRoutes);
+
+app.use("/api/profile", profileRoutes);
 
 /*
 |--------------------------------------------------------------------------
