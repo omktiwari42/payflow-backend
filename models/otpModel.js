@@ -1,5 +1,11 @@
 const pool = require("../config/db");
 
+/*
+|--------------------------------------------------------------------------
+| Save OTP
+|--------------------------------------------------------------------------
+*/
+
 async function saveOtp(phone, otp, expiresAt) {
   const result = await pool.query(
     `
@@ -18,6 +24,12 @@ async function saveOtp(phone, otp, expiresAt) {
   return result.rows[0];
 }
 
+/*
+|--------------------------------------------------------------------------
+| Get Latest OTP
+|--------------------------------------------------------------------------
+*/
+
 async function getLatestOtp(phone) {
   const result = await pool.query(
     `
@@ -33,6 +45,12 @@ async function getLatestOtp(phone) {
   return result.rows[0];
 }
 
+/*
+|--------------------------------------------------------------------------
+| Delete OTP
+|--------------------------------------------------------------------------
+*/
+
 async function deleteOtp(phone) {
   await pool.query(
     `
@@ -43,8 +61,24 @@ async function deleteOtp(phone) {
   );
 }
 
+/*
+|--------------------------------------------------------------------------
+| Remove Expired OTPs
+|--------------------------------------------------------------------------
+*/
+
+async function deleteExpiredOtps() {
+  await pool.query(
+    `
+    DELETE FROM otp_codes
+    WHERE expires_at < NOW()
+    `
+  );
+}
+
 module.exports = {
   saveOtp,
   getLatestOtp,
   deleteOtp,
+  deleteExpiredOtps,
 };
