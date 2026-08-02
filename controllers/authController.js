@@ -12,6 +12,15 @@ const {
   getLatestOtp,
   deleteOtp,
 } = require("../models/otpModel");
+const generateToken = (id) => {
+  return jwt.sign(
+    { id },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "7d",
+    }
+  );
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -59,15 +68,7 @@ exports.register = async (req, res) => {
       password: hashedPassword,
     });
 
-    const token = jwt.sign(
-      {
-        id: user.id,
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "7d",
-      }
-    );
+   const token = generateToken(user.id);
 
     res.status(201).json({
       success: true,
@@ -122,16 +123,7 @@ exports.login = async (req, res) => {
         message: "Invalid credentials.",
       });
     }
-
-    const token = jwt.sign(
-      {
-        id: user.id,
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "7d",
-      }
-    );
+const token = generateToken(user.id);
 
     delete user.password;
 
@@ -178,7 +170,11 @@ exports.sendOtp = async (req, res) => {
 
     await saveOtp(phone, otp, expiresAt);
 
-    console.log(`OTP for ${phone}: ${otp}`);
+  console.log("\n==================================");
+  console.log("📲 PAYFLOW OTP");
+  console.log(`📱 Phone : ${phone}`);
+  console.log(`🔐 OTP   : ${otp}`);
+  console.log("==================================\n");
 
     res.json({
       success: true,
@@ -242,16 +238,7 @@ exports.verifyOtp = async (req, res) => {
     }
 
     // Existing User
-    const token = jwt.sign(
-      {
-        id: user.id,
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "7d",
-      }
-    );
-
+ const token = generateToken(user.id);
     delete user.password;
 
     return res.json({
