@@ -17,6 +17,7 @@ const profileRoutes = require("./routes/profileRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 const billRoutes = require("./routes/billRoutes");
 const qrRoutes = require("./routes/qrRoutes");
+const searchRoutes = require("./routes/searchRoutes");
 
 const app = express();
 
@@ -54,17 +55,13 @@ const limiter = rateLimit({
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
-  message: {
-    success: false,
-    message: "Too many requests. Please try again later.",
-    },
 });
 
 app.use("/api", limiter);
 
 /*
 |--------------------------------------------------------------------------
-| Health
+| Health Routes
 |--------------------------------------------------------------------------
 */
 
@@ -72,6 +69,7 @@ app.get("/", (req, res) => {
   res.json({
     success: true,
     message: "🚀 PayFlow Backend API Running",
+    version: "1.0.0",
   });
 });
 
@@ -100,10 +98,11 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/bills", billRoutes);
 app.use("/api/qr", qrRoutes);
+app.use("/api/search", searchRoutes);
 
 /*
 |--------------------------------------------------------------------------
-| 404
+| 404 Handler
 |--------------------------------------------------------------------------
 */
 
