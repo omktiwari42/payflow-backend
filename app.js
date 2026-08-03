@@ -16,6 +16,7 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 const billRoutes = require("./routes/billRoutes");
+const qrRoutes = require("./routes/qrRoutes");
 
 const app = express();
 
@@ -53,6 +54,10 @@ const limiter = rateLimit({
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many requests. Please try again later.",
+    },
 });
 
 app.use("/api", limiter);
@@ -75,12 +80,13 @@ app.get("/health", (req, res) => {
     success: true,
     status: "OK",
     uptime: process.uptime(),
+    timestamp: new Date(),
   });
 });
 
 /*
 |--------------------------------------------------------------------------
-| Routes
+| API Routes
 |--------------------------------------------------------------------------
 */
 
@@ -93,6 +99,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/bills", billRoutes);
+app.use("/api/qr", qrRoutes);
 
 /*
 |--------------------------------------------------------------------------
@@ -109,7 +116,7 @@ app.use((req, res) => {
 
 /*
 |--------------------------------------------------------------------------
-| Error Handler
+| Global Error Handler
 |--------------------------------------------------------------------------
 */
 
