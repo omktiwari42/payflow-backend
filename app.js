@@ -20,6 +20,7 @@ const billRoutes = require("./routes/billRoutes");
 const qrRoutes = require("./routes/qrRoutes");
 const searchRoutes = require("./routes/searchRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
+const settingsRoutes = require("./routes/settingsRoutes");
 
 const app = express();
 
@@ -74,7 +75,7 @@ app.use(
 
 /*
 |--------------------------------------------------------------------------
-| Health
+| Health Routes
 |--------------------------------------------------------------------------
 */
 
@@ -113,10 +114,11 @@ app.use("/api/bills", billRoutes);
 app.use("/api/qr", qrRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/uploads", uploadRoutes);
+app.use("/api/settings", settingsRoutes);
 
 /*
 |--------------------------------------------------------------------------
-| 404
+| 404 Handler
 |--------------------------------------------------------------------------
 */
 
@@ -129,7 +131,7 @@ app.use((req, res) => {
 
 /*
 |--------------------------------------------------------------------------
-| Error Handler
+| Global Error Handler
 |--------------------------------------------------------------------------
 */
 
