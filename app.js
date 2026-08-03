@@ -15,6 +15,7 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const contactRoutes = require("./routes/contactRoutes");
+const billRoutes = require("./routes/billRoutes");
 
 const app = express();
 
@@ -52,17 +53,13 @@ const limiter = rateLimit({
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
-  message: {
-    success: false,
-    message: "Too many requests. Please try again later.",
-  },
 });
 
 app.use("/api", limiter);
 
 /*
 |--------------------------------------------------------------------------
-| Health Routes
+| Health
 |--------------------------------------------------------------------------
 */
 
@@ -70,7 +67,6 @@ app.get("/", (req, res) => {
   res.json({
     success: true,
     message: "🚀 PayFlow Backend API Running",
-    version: "1.0.0",
   });
 });
 
@@ -79,35 +75,28 @@ app.get("/health", (req, res) => {
     success: true,
     status: "OK",
     uptime: process.uptime(),
-    timestamp: new Date(),
   });
 });
 
 /*
 |--------------------------------------------------------------------------
-| API Routes
+| Routes
 |--------------------------------------------------------------------------
 */
 
 app.use("/api/auth", authRoutes);
-
 app.use("/api/wallet", walletRoutes);
-
 app.use("/api/transactions", transactionRoutes);
-
 app.use("/api/beneficiaries", beneficiaryRoutes);
-
 app.use("/api/notifications", notificationRoutes);
-
 app.use("/api/dashboard", dashboardRoutes);
-
 app.use("/api/profile", profileRoutes);
-
 app.use("/api/contacts", contactRoutes);
+app.use("/api/bills", billRoutes);
 
 /*
 |--------------------------------------------------------------------------
-| 404 Handler
+| 404
 |--------------------------------------------------------------------------
 */
 
@@ -120,12 +109,12 @@ app.use((req, res) => {
 
 /*
 |--------------------------------------------------------------------------
-| Global Error Handler
+| Error Handler
 |--------------------------------------------------------------------------
 */
 
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error(err);
 
   res.status(500).json({
     success: false,
