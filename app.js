@@ -14,6 +14,7 @@ const beneficiaryRoutes = require("./routes/beneficiaryRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const profileRoutes = require("./routes/profileRoutes");
+const contactRoutes = require("./routes/contactRoutes");
 
 const app = express();
 
@@ -101,6 +102,8 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
 app.use("/api/profile", profileRoutes);
+
+app.use("/api/contacts", contactRoutes);
 
 /*
 |--------------------------------------------------------------------------
