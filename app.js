@@ -6,6 +6,7 @@ const helmet = require("helmet");
 const compression = require("compression");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
+const path = require("path");
 
 const authRoutes = require("./routes/authRoutes");
 const walletRoutes = require("./routes/walletRoutes");
@@ -18,6 +19,7 @@ const contactRoutes = require("./routes/contactRoutes");
 const billRoutes = require("./routes/billRoutes");
 const qrRoutes = require("./routes/qrRoutes");
 const searchRoutes = require("./routes/searchRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
 
 const app = express();
 
@@ -61,7 +63,18 @@ app.use("/api", limiter);
 
 /*
 |--------------------------------------------------------------------------
-| Health Routes
+| Static Files
+|--------------------------------------------------------------------------
+*/
+
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "uploads"))
+);
+
+/*
+|--------------------------------------------------------------------------
+| Health
 |--------------------------------------------------------------------------
 */
 
@@ -99,10 +112,11 @@ app.use("/api/contacts", contactRoutes);
 app.use("/api/bills", billRoutes);
 app.use("/api/qr", qrRoutes);
 app.use("/api/search", searchRoutes);
+app.use("/api/uploads", uploadRoutes);
 
 /*
 |--------------------------------------------------------------------------
-| 404 Handler
+| 404
 |--------------------------------------------------------------------------
 */
 
@@ -115,7 +129,7 @@ app.use((req, res) => {
 
 /*
 |--------------------------------------------------------------------------
-| Global Error Handler
+| Error Handler
 |--------------------------------------------------------------------------
 */
 
@@ -124,7 +138,7 @@ app.use((err, req, res, next) => {
 
   res.status(500).json({
     success: false,
-    message: "Internal Server Error",
+    message: err.message || "Internal Server Error",
   });
 });
 
